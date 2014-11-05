@@ -1,34 +1,46 @@
 package net.ironingot.nihongochat;
 
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.entity.Player;
+import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.SpongeEventHandler;
+import org.spongepowered.api.event.message.CommandEvent;
+import org.spongepowered.api.util.command.CommandSource;
 
-public class NihongoChatCommand implements CommandExecutor {
+public class NihongoChatCommand {
     private NihongoChat plugin;
     private String pluginName;
     private String pluginVersion;
 
-    public NihongoChatCommand(NihongoChat plugin){
+    public NihongoChatCommand(NihongoChat plugin) {
         this.plugin = plugin;
-        this.pluginName = plugin.getDescription().getName();
-        this.pluginVersion = plugin.getDescription().getVersion();
+        this.pluginName = "NihongoChat";
+        this.pluginVersion = "1.0";
     }
 
-    public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-        String command;
-        String option;
+    @SpongeEventHandler(order=Order.DEFAULT)
+    public boolean onCommand(CommandEvent event) {
+        plugin.logger.info("Command: " +  event.getCommand() + " Arg: " + event.getArguments());
 
-        command = (args.length >= 1) ? args[0].toLowerCase() : "get";
-        option  = (args.length >= 2) ? args[1].toLowerCase() : null;
+        String command = event.getCommand();        
+        String args[] = event.getArguments().split(" ");        
 
-        return executeCommand(sender, command, option);
+        String cmd = (args.length >= 1) ? args[0].toLowerCase() : "get";
+        String option  = (args.length >= 2) ? args[1].toLowerCase() : null;
+
+        try {
+            Player player = (Player)event.getSource();
+
+            return executeCommand(player, cmd, option);
+        } catch (ClassCastException e) {
+            plugin.logger.warn("Command sender is not a player: " + e.toString());
+        } 
+        return true;
     }
 
-    private boolean executeCommand(CommandSender sender, String command, String option) {
+    private boolean executeCommand(Player sender, String command, String option) {
         if (command != null && command.equals("version")) {
-            sender.sendMessage(ChatColor.GOLD + this.pluginName + "-" + this.pluginVersion);
+            sender.sendMessage(/*ChatColor.GOLD +*/ this.pluginName + "-" + this.pluginVersion);
             return true;
         }
 
@@ -41,9 +53,9 @@ public class NihongoChatCommand implements CommandExecutor {
             }
 
             if (plugin.getConfigHandler().getUserKanjiConversion(sender.getName())) {
-                sender.sendMessage(ChatColor.GOLD + pluginName + " Kanji conversion is active.");
+                sender.sendMessage(/*ChatColor.GOLD +*/ pluginName + " Kanji conversion is active.");
             } else {
-                sender.sendMessage(ChatColor.GOLD + pluginName + " Kanji conversion is inactive.");
+                sender.sendMessage(/*ChatColor.GOLD +*/ pluginName + " Kanji conversion is inactive.");
             }
             return true;
         }
@@ -58,9 +70,9 @@ public class NihongoChatCommand implements CommandExecutor {
         }
 
         if (plugin.getConfigHandler().getUserMode(sender.getName()) == Boolean.TRUE) {
-            sender.sendMessage(ChatColor.GOLD + pluginName + " is active.");
+            sender.sendMessage(/*ChatColor.GOLD +*/ pluginName + " is active.");
         } else {
-            sender.sendMessage(ChatColor.GOLD + pluginName + " is inactive.");
+            sender.sendMessage(/*ChatColor.GOLD +*/ pluginName + " is inactive.");
         }
         return true;
     }

@@ -3,18 +3,16 @@ package net.ironingot.nihongochat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.spongepowered.api.Game;
+import org.spongepowered.api.entity.Player;
+import org.spongepowered.api.event.Order;
+import org.spongepowered.api.event.SpongeEventHandler;
+import org.spongepowered.api.event.player.AsyncPlayerChatEvent;
 
 import biscotte.kana.Kana;
-
 import net.ironingot.translator.KanaKanjiTranslator;
 
-public class NihongoChatAsyncPlayerChatListener implements Listener {
+public class NihongoChatAsyncPlayerChatListener {
     public NihongoChat plugin;
 
     private static final String avoidingString = 
@@ -23,11 +21,9 @@ public class NihongoChatAsyncPlayerChatListener implements Listener {
 
     public NihongoChatAsyncPlayerChatListener(NihongoChat plugin) {
         this.plugin = plugin;
-
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @SpongeEventHandler(order=Order.LAST)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         String message = event.getMessage();
         Player player = event.getPlayer();
@@ -65,9 +61,9 @@ public class NihongoChatAsyncPlayerChatListener implements Listener {
                 stringBuilder.append(kanaMessage);
             } 
 
-            stringBuilder.append(ChatColor.GRAY).append(" ").append(message);
-
-            event.setMessage(stringBuilder.toString());
+            // stringBuilder.append(ChatColor.GRAY).append(" ").append(message);
+            // event.setMessage(stringBuilder.toString());
+            event.getGame().broadcastMessage(stringBuilder.toString());
         }
     }
 }
