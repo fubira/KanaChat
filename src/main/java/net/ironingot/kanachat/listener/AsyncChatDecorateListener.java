@@ -9,12 +9,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 
 import biscotte.kana.Kana;
 import net.ironingot.kanachat.KanaChat;
 import net.ironingot.translator.KanaKanjiTranslator;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
 
-public class AsyncPlayerChatListener implements Listener {
+public class AsyncChatDecorateListener implements Listener {
     public final KanaChat plugin;
 
     private static final String excludeMatchString = "\u00a7|u00a74u00a75u00a73u00a74v|^http|^\\.\\/";
@@ -32,15 +36,29 @@ public class AsyncPlayerChatListener implements Listener {
     private static final String postfixMatchString = "(.*?)([0-9!-,.-/:-@\\[-`\\{-~]+)$";
     private static final Pattern postfixPattern = Pattern.compile(postfixMatchString);
 
-    public AsyncPlayerChatListener(KanaChat plugin) {
+    public AsyncChatDecorateListener(KanaChat plugin) {
         this.plugin = plugin;
     }
 
     @EventHandler(priority = EventPriority.LOW)
-    public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
+    public void onAsyncChatDecorate(AsyncChatDecorateEvent event) {
         String system = "";
         String space = "";
-        String message = event.getMessage();
+        Component component = event.originalMessage();
+
+        if (!(component instanceof TextComponent)) {
+            return;
+        }
+
+        TextComponent textComponent = (TextComponent)component;
+        if (textComponent == null) {
+            return;
+        }
+
+        String message = textComponent.content();
+        if (message == null) {
+            return;
+        }
 
         if (message.startsWith("/")) {
             return;
@@ -57,7 +75,7 @@ public class AsyncPlayerChatListener implements Listener {
             message = systemMatcher.group(3);
         }
 
-        Player player = event.getPlayer();
+        Player player = event.player();
         Boolean toKana = plugin.getConfigHandler().getUserMode(player.getName());
         Boolean toKanji = plugin.getConfigHandler().getUserKanjiConversion(player.getName());
 
@@ -70,20 +88,27 @@ public class AsyncPlayerChatListener implements Listener {
         if (dstMessage.equals(message)) {
             return;
         }
-        event.setMessage(formatMessage(system, dstMessage, message));
+
+        event.result(formatMessage(system, dstMessage, message));
     }
 
-    private String formatMessage(String prefix, String dst, String src) {
-        StringBuilder stringBuilder = new StringBuilder();
+    private Component formatMessage(String prefix, String dst, String src) {
+        Component component = Component.empty();
 
         // [Prefix] <Converted Message> <Source Message>
         if (!prefix.isEmpty()) {
-            stringBuilder.append(prefix).append(" ");
+            component
+                .append(Component.text(prefix))
+                .append(Component.text(" "));
         }
 
-        return stringBuilder.append(dst)
-            .append(" ").append(ChatColor.DARK_GRAY)
-            .append("(").append(src).append(")").toString();
+        return component
+            .append(Component.text(dst))
+            .append(Component.text(" " + ChatColor.DARK_GRAY))
+            .append(Component.text("("))
+            .append(Component.text(src))
+            .append(Component.text(")"));
+
     }
 
     public String translateJapanese(String message, Boolean toKanji)

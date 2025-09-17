@@ -7,7 +7,7 @@ import java.io.File;
 import java.util.logging.Logger;
 import java.util.Arrays;
 
-import net.ironingot.kanachat.listener.AsyncPlayerChatListener;
+import net.ironingot.kanachat.listener.AsyncChatDecorateListener;
 
 public class KanaChat extends JavaPlugin {
     public static final Logger logger = Logger.getLogger("Minecraft");
@@ -20,7 +20,8 @@ public class KanaChat extends JavaPlugin {
         command.setAliases(Arrays.asList("japanize", "jc"));
         command.setExecutor(new KanaChatCommand(this));
 
-        getServer().getPluginManager().registerEvents(new AsyncPlayerChatListener(this), this);
+        // getServer().getPluginManager().registerEvents(new AsyncPlayerChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new AsyncChatDecorateListener(this), this);
 
         logger.info(getDescription().getName() + "-" + getDescription().getVersion() + " is enabled");
     }
